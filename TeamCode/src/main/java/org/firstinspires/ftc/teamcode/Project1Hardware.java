@@ -83,7 +83,7 @@ public class Project1Hardware {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
 
         //X offset = sideways (forward pod) | Y offset = forwards (strafe pod)
-        pinpoint.setOffsets(0.0, 0.0, DistanceUnit.INCH); //these are tuned for 3110-0002-0001 Product Insight #1
+        pinpoint.setOffsets(-107.31371, 0.0, DistanceUnit.MM); //these are tuned for 3110-0002-0001 Product Insight #1
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
 
         //Left and Forward are positive
