@@ -70,7 +70,7 @@ public final class BotConstants {
     }
 
     public static final class AutoAlign {
-        public static final double ALIGN_P_GAIN = 0;
+        public static final double ALIGN_P_GAIN = 0.5;
         public static final double ALIGN_I_GAIN = 0;
         public static final double ALIGN_D_GAIN = 0;
     }
@@ -78,13 +78,13 @@ public final class BotConstants {
     @IgnoreConfigurable
     public static final class Limelight {
         // how many degrees back is your limelight rotated from perfectly vertical?
-        public static final double limelightMountAngleDegrees = 25.0;
+        public static final double limelightMountAngleDegrees = 12.0;
 
         // distance from the center of the Limelight lens to the floor
-        public static final double limelightLensHeightInches = 20.0;
+        public static final double limelightLensHeightInches = 14.587;
 
         // distance from the target to the floor
-        public static final double goalHeightInches = 60.0;
+        public static final double goalHeightInches = 38.75 - 9.25;
     }
 
     public static final class AutoShoot {
