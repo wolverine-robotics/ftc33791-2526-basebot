@@ -63,7 +63,7 @@ public class DriveWithPinpoint extends LinearOpMode {
     double max, sin, cos, theta, power, vertical, horizontal, pivot, heading;
     double direction_x, direction_y;
     double FLPower, FRPower, BLPower, BRPower;
-    DcMotorEx frontLeft, frontRight, backLeft, backRight;
+    DcMotorEx frontLeft, frontRight, backLeft, backRight, intake;
 
     GoBildaPinpointDriver pinpoint;
 
@@ -73,10 +73,11 @@ public class DriveWithPinpoint extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
-        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
-        backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
-        backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "fl");
+        frontRight = hardwareMap.get(DcMotorEx.class, "fr");
+        backLeft = hardwareMap.get(DcMotorEx.class, "bl");
+        backRight = hardwareMap.get(DcMotorEx.class, "br");
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
 
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -85,7 +86,7 @@ public class DriveWithPinpoint extends LinearOpMode {
 
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         //X offset = sideways (forward pod) | Y offset = forwards (strafe pod)
-        pinpoint.setOffsets(-107.31371, 0.0, DistanceUnit.MM); //these are tuned for 3110-0002-0001 Product Insight #1
+        pinpoint.setOffsets(107.31371, 0.0, DistanceUnit.MM); //these are tuned for 3110-0002-0001 Product Insight #1
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
 
         //Left and Forward are positive
@@ -105,8 +106,16 @@ public class DriveWithPinpoint extends LinearOpMode {
             direction_x = gamepad1.left_stick_x;
             direction_y = gamepad1.left_stick_y;
             pivot       = gamepad1.right_stick_x * 0.8;
-            heading     = pinpoint.getHeading(AngleUnit.RADIANS);
+            heading     = pinpoint.getHeading(AngleUnit.DEGREES);
             driveFC(direction_y, direction_x, pivot, heading);
+
+            if (gamepad1.left_bumper) {
+                intake.setPower(-1.0);
+            } else if (gamepad1.right_bumper) {
+                intake.setPower(1.0);
+            } else {
+                intake.setPower(0.0);
+            }
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
