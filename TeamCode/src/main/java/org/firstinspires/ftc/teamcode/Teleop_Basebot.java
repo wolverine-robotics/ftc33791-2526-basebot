@@ -189,8 +189,6 @@ public class Teleop_Basebot extends LinearOpMode {
                 }
             } else if (gamepad.left_trigger > Constants.TRIGGER_THRESHOLD) {
                 intake.setPower(Constants.INTAKE_REVERSE_POWER);
-
-                setShooterVel(-100);
             } else {
                 intake.setPower(0);
             }
@@ -206,6 +204,7 @@ public class Teleop_Basebot extends LinearOpMode {
                 setIndexPos(index.getCurrentPosition() + Constants.INDEX_STEP * 3);
                 intake.setPower(1.0);
             } else if (gamepad.circle) {
+
                 index.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 index.setPower(1);
                 intake.setPower(1);
