@@ -33,7 +33,7 @@ public class Teleop_Basebot extends LinearOpMode {
     // =====================================================================
     public static class Constants {
         // Shooter
-        public static final double CLOSE_ZONE_VELOCITY = 1000;
+        public static final double CLOSE_ZONE_VELOCITY = 900;
         public static final double FAR_ZONE_VELOCITY = 1200;
         public static final double SHOOTER_P_GAIN = 1;
         public static final double SHOOTER_I_GAIN = 0.001;
