@@ -180,8 +180,15 @@ public class Teleop_Basebot extends LinearOpMode {
             // --- INTAKE ---
             if (gamepad.right_trigger > Constants.TRIGGER_THRESHOLD) {
                 intake.setPower(Constants.INTAKE_POWER);
+                if (distance.getDistance(DistanceUnit.INCH) > 2) {
+                    index.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    index.setPower(0.5);
+                } else {
+                    index.setPower(0.0);
+                }
             } else if (gamepad.left_trigger > Constants.TRIGGER_THRESHOLD) {
                 intake.setPower(Constants.INTAKE_REVERSE_POWER);
+
                 setShooterVel(-100);
             } else {
                 intake.setPower(0);
@@ -197,22 +204,22 @@ public class Teleop_Basebot extends LinearOpMode {
             } else if (gamepad.squareWasPressed()) {
                 setIndexPos(index.getCurrentPosition() + Constants.INDEX_STEP * 3);
                 intake.setPower(1.0);
-            } else if (gamepad.circleWasPressed()) {
+            } else if (gamepad.circle) {
                 index.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 index.setPower(1);
                 intake.setPower(1);
             } else {
-                index.setPower(0);
+                index.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
 
             // --- AUTO INDEX ---
-            if (gamepad.touchpadWasPressed()) {
-                doAutoIndex = !doAutoIndex;
-            }
-            if (doAutoIndex && distance.getDistance(DistanceUnit.INCH) < 2) {
-                setIndexPos(index.getCurrentPosition() + Constants.INDEX_STEP);
-                intake.setPower(1.0);
-            }
+//            if (gamepad.touchpadWasPressed()) {
+//                doAutoIndex = !doAutoIndex;
+//            }
+//            if (doAutoIndex && distance.getDistance(DistanceUnit.INCH) < 2) {
+//                setIndexPos(index.getCurrentPosition() + Constants.INDEX_STEP);
+//                intake.setPower(1.0);
+//            }
 
             // --- TELEMETRY ---
             telemetry.addData("Status", "Run Time: " + runtime.toString());
