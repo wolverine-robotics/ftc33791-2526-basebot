@@ -178,21 +178,6 @@ public class Teleop_Basebot extends LinearOpMode {
                 rShooter.setPower(0);
             }
 
-            // --- INTAKE ---
-            if (gamepad.right_trigger > Constants.TRIGGER_THRESHOLD) {
-                intake.setPower(Constants.INTAKE_POWER);
-                if (distance.getDistance(DistanceUnit.INCH) > 2) {
-                    index.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                    index.setVelocity(Constants.PASSIVE_INDEX_VELOCITY);
-                } else {
-                    index.setPower(0.0);
-                }
-            } else if (gamepad.left_trigger > Constants.TRIGGER_THRESHOLD) {
-                intake.setPower(Constants.INTAKE_REVERSE_POWER);
-            } else {
-                intake.setPower(0);
-            }
-
             // --- INDEX ---
             if (gamepad.dpadRightWasPressed()) {
                 setIndexPos(index.getCurrentPosition() + Constants.INDEX_STEP);
@@ -210,6 +195,21 @@ public class Teleop_Basebot extends LinearOpMode {
                 intake.setPower(1);
             } else {
                 index.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            }
+
+            // --- INTAKE ---
+            if (gamepad.right_trigger > Constants.TRIGGER_THRESHOLD) {
+                intake.setPower(Constants.INTAKE_POWER);
+                if (distance.getDistance(DistanceUnit.INCH) > 2) {
+                    index.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    index.setVelocity(Constants.PASSIVE_INDEX_VELOCITY);
+                } else {
+                    index.setPower(0.0);
+                }
+            } else if (gamepad.left_trigger > Constants.TRIGGER_THRESHOLD) {
+                intake.setPower(Constants.INTAKE_REVERSE_POWER);
+            } else {
+                intake.setPower(0);
             }
 
             // --- AUTO INDEX ---
