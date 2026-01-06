@@ -3,11 +3,13 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -72,6 +74,8 @@ public class Teleop_Basebot extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
     double direction_x, direction_y, pivot, heading;
     double FLPower, FRPower, BLPower, BRPower;
+    boolean doAutoIndex = false;
+
 
     // Hardware
     DcMotorEx frontLeft, frontRight, backLeft, backRight;
@@ -79,6 +83,7 @@ public class Teleop_Basebot extends LinearOpMode {
     DcMotorEx intake, index;
     GoBildaPinpointDriver pinpoint;
     Limelight3A limelight;
+    DistanceSensor distance;
 
     // Gamepad state
     Gamepad gamepad;
@@ -173,10 +178,28 @@ public class Teleop_Basebot extends LinearOpMode {
             }
 
             // --- INDEX ---
-            if (gamepad.squareWasPressed()) {
+            if (gamepad.dpadRightWasPressed()) {
                 setIndexPos(index.getCurrentPosition() + Constants.INDEX_STEP);
-            } else if (gamepad.circleWasPressed()) {
+                intake.setPower(0.5);
+            } else if (gamepad.dpadLeftWasPressed()) {
                 setIndexPos(index.getCurrentPosition() - Constants.INDEX_STEP);
+                intake.setPower(-0.5);
+            } else if (gamepad.squareWasPressed()) {
+                setIndexPos(index.getCurrentPosition() + Constants.INDEX_STEP * 3);
+                intake.setPower(0.5);
+            } else if (gamepad.circleWasPressed()) {
+                index.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                index.setPower(1);
+                intake.setPower(1);
+            }
+
+            // --- AUTO INDEX ---
+            if (gamepad.touchpadWasPressed()) {
+                doAutoIndex = !doAutoIndex;
+            }
+            if (doAutoIndex && distance.getDistance(DistanceUnit.INCH) < 2) {
+                setIndexPos(index.getCurrentPosition() + Constants.INDEX_STEP);
+                intake.setPower(0.5);
             }
 
             // --- INTAKE ---
@@ -197,6 +220,7 @@ public class Teleop_Basebot extends LinearOpMode {
             telemetry.addData("heading", heading);
             telemetry.addData("lShooterVelo", lShooter.getVelocity());
             telemetry.addData("rShooterVelo", rShooter.getVelocity());
+            telemetry.addData("doAutoIndex", doAutoIndex);
             telemetry.update();
         }
     }
@@ -478,5 +502,7 @@ public class Teleop_Basebot extends LinearOpMode {
         limelight.pipelineSwitch(0);
         limelight.setPollRateHz(100);
         limelight.start();
+
+        distance = hardwareMap.get(DistanceSensor.class, "distance");
     }
 }
