@@ -103,7 +103,11 @@ public class BlueSidePedro extends OpMode {
         public static double shootPositionXCoordinate = 50.000;
         public static double intakePathEndXCoordinate = 15.0;
 
-        public static double shooterVelocity = 1000;
+
+        public static double shooterVelocityPreload = 1250;
+        public static double shooterVelocityGoal = 1250;
+        public static double shooterVelocityMid = 1250;
+        public static double shooterVelocityLoadingZone = 1250;
     }
 
     /**
@@ -233,7 +237,7 @@ public class BlueSidePedro extends OpMode {
             case 0:
                 // Start to shoot position
                 follower.followPath(StartToShoot);
-                setShooterVel(shooterVelocity);
+                setShooterVel(shooterVelocityPreload);
                 setPathState(1);
                 break;
             case 1:
@@ -251,6 +255,7 @@ public class BlueSidePedro extends OpMode {
                 if (!follower.isBusy()) {
                     intake.setPower(0);
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
+                    setShooterVel(shooterVelocityGoal);
                     follower.followPath(ShootCloseLine, true);
                     setPathState(3);
                 }
@@ -277,6 +282,7 @@ public class BlueSidePedro extends OpMode {
                 if (!follower.isBusy()) {
                     intake.setPower(0);
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
+                    setShooterVel(shooterVelocityMid);
                     follower.followPath(ShootMidLine, true);
                     setPathState(6);
                 }
@@ -303,6 +309,7 @@ public class BlueSidePedro extends OpMode {
                 if (!follower.isBusy()) {
                     intake.setPower(0);
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
+                    setShooterVel(shooterVelocityLoadingZone);
                     follower.followPath(ShootFarLine, true);
                     setPathState(9);
                 }
