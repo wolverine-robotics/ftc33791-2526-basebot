@@ -177,20 +177,32 @@ public class Teleop_Basebot extends LinearOpMode {
                 rShooter.setPower(0);
             }
 
+            // --- INTAKE ---
+            if (gamepad.right_trigger > Constants.TRIGGER_THRESHOLD) {
+                intake.setPower(Constants.INTAKE_POWER);
+            } else if (gamepad.left_trigger > Constants.TRIGGER_THRESHOLD) {
+                intake.setPower(Constants.INTAKE_REVERSE_POWER);
+                setShooterVel(-100);
+            } else {
+                intake.setPower(0);
+            }
+
             // --- INDEX ---
             if (gamepad.dpadRightWasPressed()) {
                 setIndexPos(index.getCurrentPosition() + Constants.INDEX_STEP);
-                intake.setPower(0.5);
+                intake.setPower(1.0);
             } else if (gamepad.dpadLeftWasPressed()) {
                 setIndexPos(index.getCurrentPosition() - Constants.INDEX_STEP);
-                intake.setPower(-0.5);
+                intake.setPower(-1.0);
             } else if (gamepad.squareWasPressed()) {
                 setIndexPos(index.getCurrentPosition() + Constants.INDEX_STEP * 3);
-                intake.setPower(0.5);
+                intake.setPower(1.0);
             } else if (gamepad.circleWasPressed()) {
                 index.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 index.setPower(1);
                 intake.setPower(1);
+            } else {
+                index.setPower(0);
             }
 
             // --- AUTO INDEX ---
@@ -199,16 +211,7 @@ public class Teleop_Basebot extends LinearOpMode {
             }
             if (doAutoIndex && distance.getDistance(DistanceUnit.INCH) < 2) {
                 setIndexPos(index.getCurrentPosition() + Constants.INDEX_STEP);
-                intake.setPower(0.5);
-            }
-
-            // --- INTAKE ---
-            if (gamepad.right_trigger > Constants.TRIGGER_THRESHOLD) {
-                intake.setPower(Constants.INTAKE_POWER);
-            } else if (gamepad.left_trigger > Constants.TRIGGER_THRESHOLD) {
-                intake.setPower(Constants.INTAKE_REVERSE_POWER);
-            } else {
-                intake.setPower(0);
+                intake.setPower(1.0);
             }
 
             // --- TELEMETRY ---
