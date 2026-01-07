@@ -35,12 +35,12 @@ public class Teleop_Basebot extends LinearOpMode {
     // =====================================================================
     public static class Constants {
         // Shooter
-        public static final double CLOSE_ZONE_VELOCITY = 1300;
-        public static final double FAR_ZONE_VELOCITY = 1850;
+        public static final double CLOSE_ZONE_VELOCITY = 1280;
+        public static final double FAR_ZONE_VELOCITY = 1520;
         public static final double SHOOTER_P_GAIN = 1;
         public static final double SHOOTER_I_GAIN = 0.001;
         public static final double SHOOTER_D_GAIN = 0.0;
-        public static final int SHOOTER_TOLERANCE = 10;
+        public static final int SHOOTER_TOLERANCE = 50;
 
         // Drive
         public static final double PIVOT_MULTIPLIER = 0.8;
@@ -72,7 +72,7 @@ public class Teleop_Basebot extends LinearOpMode {
         public static final int REGRESSION_DEGREE = 2;
 
         // Distance sensor
-        public static final double ACTIVATION_DISTANCE = 2; //INCHES
+        public static final double ACTIVATION_DISTANCE = 3.3; //INCHES
     }
 
     // =====================================================================
@@ -226,7 +226,7 @@ public class Teleop_Basebot extends LinearOpMode {
             } else if (!shooterWithinTolerance(shooterTargetVel)) {
                 setPattern(RevBlinkinLedDriver.BlinkinPattern.ORANGE);
             } else if (withinDistance()
-                    && autoIndexAlertTimeout.time(TimeUnit.SECONDS) < 1.0) {
+                    && gamepad1.right_trigger>Constants.TRIGGER_THRESHOLD) {
                 setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
             } else if (shooterWithinTolerance(Constants.CLOSE_ZONE_VELOCITY)) {
                 setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
@@ -332,7 +332,7 @@ public class Teleop_Basebot extends LinearOpMode {
     }
 
     public int getAvgShooterVel() {
-        return (int) (lShooter.getVelocity() + rShooter.getVelocity() / 2);
+        return (int) ((lShooter.getVelocity() + rShooter.getVelocity()) / 2);
     }
 
     public boolean shooterWithinTolerance(double target) {
