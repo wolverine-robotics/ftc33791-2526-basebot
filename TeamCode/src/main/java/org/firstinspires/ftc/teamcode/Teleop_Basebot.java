@@ -62,6 +62,9 @@ public class Teleop_Basebot extends LinearOpMode {
         public static final double LIMELIGHT_MOUNT_ANGLE = 12.0;
         public static final double LIMELIGHT_HEIGHT = 13.4;
         public static final double GOAL_HEIGHT = 38.75 - 9.25;
+        //If turns left, positive is more left
+        //If turns right, positive is more right (edit these comments to confirm)
+        public static final double TX_OFFSET_DEGREES = 45;
 
         // Pinpoint
         public static final double PINPOINT_X_OFFSET = -107.31371;
@@ -217,7 +220,7 @@ public class Teleop_Basebot extends LinearOpMode {
                 index.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 index.setPower(Constants.MAG_DUMP_POWER);
                 intake.setPower(Constants.MAG_DUMP_POWER);
-            } else {
+            } else   {
                 index.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 intake.setPower(0);
             }
@@ -304,7 +307,7 @@ public class Teleop_Basebot extends LinearOpMode {
             return "RESULT INVALID";
         }
 
-        double tx = result.getTx();
+        double tx = result.getTx() - Constants.TX_OFFSET_DEGREES;
         if (Math.abs(tx) <= tolerance) {
             frontLeft.setPower(0);
             frontRight.setPower(0);
