@@ -123,7 +123,7 @@ public class CloseBlueTwo extends LinearOpMode {
         telemetry.addData("PinpointPose:",pinpoint.getPosition().toString());
         telemetry.update();
         driveToX(40, 3.0);
-      pinpoint.setHeading(180, AngleUnit.DEGREES);
+        pinpoint.setHeading(180, AngleUnit.DEGREES);
         sleep(500);
         driveToX(-40, 3.0);
         

@@ -64,7 +64,7 @@ public class Teleop_Basebot extends LinearOpMode {
         public static final double GOAL_HEIGHT = 38.75 - 9.25;
         //If turns left, positive is more left
         //If turns right, positive is more right (edit these comments to confirm)
-        public static final double TX_OFFSET_DEGREES = 45;
+        public static final double TX_OFFSET_DEGREES = 2;
 
         // Pinpoint
         public static final double PINPOINT_X_OFFSET = -107.31371;
