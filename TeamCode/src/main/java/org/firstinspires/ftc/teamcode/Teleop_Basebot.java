@@ -42,7 +42,7 @@ public class Teleop_Basebot extends LinearOpMode {
         // Drive
         public static final double PIVOT_MULTIPLIER = 0.8;
         public static final double STRAFE_CORRECTION = 1.1;
-        public static final double AUTO_ALIGN_TOLERANCE = 0.5;
+        public static final double AUTO_ALIGN_TOLERANCE = 0.25;
         public static final double ALIGN_P_GAIN = 0.025;
 
         // Intake

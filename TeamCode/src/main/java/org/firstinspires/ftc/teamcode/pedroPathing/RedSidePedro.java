@@ -104,10 +104,10 @@ public class RedSidePedro extends OpMode {
         public static double shootPositionXCoordinate = 95.000;
         public static double intakePathEndXCoordinate = 135.000;
 
-        public static double shooterVelocityPreload = 1050;
-        public static double shooterVelocityGoal = 1050;
-        public static double shooterVelocityMid = 1050;
-        public static double shooterVelocityLoadingZone = 1050;
+        public static double shooterVelocityPreload = 975;
+        public static double shooterVelocityGoal = 1120;
+        public static double shooterVelocityMid = 1100;
+        public static double shooterVelocityLoadingZone = 1130;
     }
 
     /**
@@ -231,7 +231,7 @@ public class RedSidePedro extends OpMode {
             case 2:
                 // Wait until robot reaches intake close line position, then shoot
                 if (!follower.isBusy()) {
-                    intake.setPower(0);
+                    intake.setPower(1.0);
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
                     setShooterVel(shooterVelocityGoal);
                     follower.followPath(ShootCloseLine, true);
@@ -241,6 +241,7 @@ public class RedSidePedro extends OpMode {
             case 3:
                 // Wait until robot reaches shoot position, then prep for mid line intake
                 if (!follower.isBusy()) {
+                    autoAlignTimeout(0.5);
                     magDump(1.0);
                     follower.followPath(PrepIntakeMidLine, true);
                     setPathState(4);
@@ -258,7 +259,7 @@ public class RedSidePedro extends OpMode {
             case 5:
                 // Wait until robot reaches intake mid line position, then shoot
                 if (!follower.isBusy()) {
-                    intake.setPower(0);
+                    intake.setPower(1.0);
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
                     setShooterVel(shooterVelocityMid);
                     follower.followPath(ShootMidLine, true);
@@ -268,6 +269,7 @@ public class RedSidePedro extends OpMode {
             case 6:
                 // Wait until robot reaches shoot position, then prep for far line intake
                 if (!follower.isBusy()) {
+                    autoAlignTimeout(0.5);
                     magDump(1.0);
                     follower.followPath(PrepIntakeFarLine, true);
                     setPathState(7);
@@ -285,7 +287,7 @@ public class RedSidePedro extends OpMode {
             case 8:
                 // Wait until robot reaches intake far line position, then shoot
                 if (!follower.isBusy()) {
-                    intake.setPower(0);
+                    intake.setPower(1.0);
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
                     setShooterVel(shooterVelocityLoadingZone);
                     follower.followPath(ShootFarLine, true);
@@ -296,6 +298,7 @@ public class RedSidePedro extends OpMode {
                 // Wait until robot reaches shoot position, then end
                 if (!follower.isBusy()) {
                     // Set the state to a case we won't use, so it just stops running new paths
+                    autoAlignTimeout(0.5);
                     magDump(1.0);
                     setPathState(-1);
                 }
@@ -364,6 +367,13 @@ public class RedSidePedro extends OpMode {
         }
     }
 
+    public void autoAlignTimeout(double seconds) {
+        actiontime.reset();
+        while (actiontime.seconds()<seconds) {
+            autoAlign(0.25);
+        }
+    }
+
     // =====================================================================
     // LIMELIGHT METHODS
     // =====================================================================
@@ -383,8 +393,77 @@ public class RedSidePedro extends OpMode {
         blinkinLedDriver.setPattern(pattern);
     }
 
+    // =====================================================================
+    // DRIVE METHODS
+    // =====================================================================
+    public void fieldCentric(double y, double x, double rx, double heading) {
+        frontLeft.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.FORWARD);
+        backLeft.setDirection(DcMotor.Direction.REVERSE);
+        backRight.setDirection(DcMotor.Direction.FORWARD);
+
+        double rotX = x * Math.cos(-heading) - y * Math.sin(-heading);
+        double rotY = x * Math.sin(-heading) + y * Math.cos(-heading);
+
+        rotX = rotX * Teleop_Basebot.Constants.STRAFE_CORRECTION;
+
+        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+        double FLPower = (rotY + rotX + rx) / denominator;
+        double FRPower = (rotY - rotX - rx) / denominator;
+        double BLPower = (rotY - rotX + rx) / denominator;
+        double BRPower = (rotY + rotX - rx) / denominator;
+
+        frontLeft.setPower(FLPower);
+        frontRight.setPower(FRPower);
+        backLeft.setPower(BLPower);
+        backRight.setPower(BRPower);
+    }
+
+    public String autoAlign(double tolerance) {
+        LLResult result = limelight.getLatestResult();
+
+        if (result == null) {
+            frontLeft.setPower(0);
+            frontRight.setPower(0);
+            backLeft.setPower(0);
+            backRight.setPower(0);
+            return "RESULT NULL";
+        } else if (!result.isValid()) {
+            frontLeft.setPower(0);
+            frontRight.setPower(0);
+            backLeft.setPower(0);
+            backRight.setPower(0);
+            return "RESULT INVALID";
+        }
+
+        double tx = result.getTx() - (getDistanceToTag() > 40 ? Teleop_Basebot.Constants.TX_OFFSET_DEGREES_CLOSE : Teleop_Basebot.Constants.TX_OFFSET_DEGREES_FAR);
+        if (Math.abs(tx) <= tolerance) {
+            frontLeft.setPower(0);
+            frontRight.setPower(0);
+            backLeft.setPower(0);
+            backRight.setPower(0);
+            return "SUCCESS";
+        }
+
+        double pivot = Math.max(-1.0, Math.min(1.0, Teleop_Basebot.Constants.ALIGN_P_GAIN * tx));
+
+        fieldCentric(0, 0, pivot, 0);
+
+        return "IN PROGRESS";
+    }
+
     void initializeHardware() {
         // --- Initialize Hardware ---
+        frontLeft = hardwareMap.get(DcMotorEx.class, "fl");
+        frontRight = hardwareMap.get(DcMotorEx.class, "fr");
+        backLeft = hardwareMap.get(DcMotorEx.class, "bl");
+        backRight = hardwareMap.get(DcMotorEx.class, "br");
+
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
