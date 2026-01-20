@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.HeadingInterpolator;
@@ -104,10 +105,10 @@ public class RedSidePedro extends OpMode {
         public static double shootPositionXCoordinate = 95.000;
         public static double intakePathEndXCoordinate = 135.000;
 
-        public static double shooterVelocityPreload = 975;
+        public static double shooterVelocityPreload = 930;
         public static double shooterVelocityGoal = 1120;
-        public static double shooterVelocityMid = 1100;
-        public static double shooterVelocityLoadingZone = 1130;
+        public static double shooterVelocityMid = 1120;
+        public static double shooterVelocityLoadingZone = 1145;
     }
 
     /**
@@ -179,7 +180,7 @@ public class RedSidePedro extends OpMode {
         StartToShoot = new Path(new BezierLine(startPose, new Pose(shootPositionXCoordinate, 85.000)));
         StartToShoot.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45));
 
-        IntakeCloseLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 85.000), new Pose(intakePathEndXCoordinate, 85.000)));
+        IntakeCloseLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 85.000), new Pose(132, 85.000)));
         IntakeCloseLine.setLinearHeadingInterpolation(0, 0);
 
         ShootCloseLine = new Path(new BezierLine(new Pose(intakePathEndXCoordinate, 85.000), new Pose(shootPositionXCoordinate, 85.000)));
@@ -191,7 +192,11 @@ public class RedSidePedro extends OpMode {
         IntakeMidLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 60.000), new Pose(intakePathEndXCoordinate, 60.000)));
         IntakeMidLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
 
-        ShootMidLine = new Path(new BezierLine(new Pose(intakePathEndXCoordinate, 60.000), new Pose(shootPositionXCoordinate, 85.000)));
+        ShootMidLine = new Path(new BezierCurve(
+                new Pose(intakePathEndXCoordinate, 60.000),
+                new Pose(95.285, 51.366),
+                new Pose(shootPositionXCoordinate, 85.000)
+        ));
         ShootMidLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45));
 
         PrepIntakeFarLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 85.000), new Pose(shootPositionXCoordinate, 35.000)));
