@@ -226,6 +226,7 @@ public class RedSidePedro extends OpMode {
             case 1:
                 // Wait until robot reaches shoot position, then start intake close line
                 if (!follower.isBusy()) {
+                    autoAlignTimeout(0.5);
                     magDump(1.0);
                     follower.setMaxPower(intakePathMaxDrivetrainPower);
                     intakePassiveIndex();
