@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import static android.os.SystemClock.sleep;
+import static org.firstinspires.ftc.teamcode.pedroPathing.FarRedSideMarksmen.FarRedSideMarksmenConfigurables.*;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
@@ -21,58 +22,16 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import static org.firstinspires.ftc.teamcode.pedroPathing.CloseBlueSide.CloseBlueSideConfigurables.*;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Teleop_Basebot;
 
 @Autonomous()
-public class CloseBlueSide extends OpMode {
-
-    // =====================================================================
-    // CONSTANTS
-    // =====================================================================
-    public static class TeleOpConstants {
-        // Shooter
-        public static final double CLOSE_ZONE_VELOCITY = 1300;
-        public static final double FAR_ZONE_VELOCITY = 1850;
-        public static final double SHOOTER_P_GAIN = 1;
-        public static final double SHOOTER_I_GAIN = 0.001;
-        public static final double SHOOTER_D_GAIN = 0.0;
-        public static final int SHOOTER_TOLERANCE = 10;
-
-        // Intake
-        public static final double INTAKE_POWER = 1.0;
-        public static final double INTAKE_REVERSE_POWER = -0.7;
-        public static final double TRIGGER_THRESHOLD = 0.2;
-
-        // Index
-        public static final int INDEX_STEP = 280;
-        public static final double PASSIVE_INDEX_VELOCITY = 0;
-        public static final double MAG_DUMP_POWER = 0.7;
-
-        // Limelight
-        public static final double LIMELIGHT_MOUNT_ANGLE = 12.0;
-        public static final double LIMELIGHT_HEIGHT = 13.4;
-        public static final double GOAL_HEIGHT = 38.75 - 9.25;
-
-        // Pinpoint
-        public static final double PINPOINT_X_OFFSET = -107.31371;
-        public static final double PINPOINT_Y_OFFSET = 0.0;
-
-        // AutoShoot regression data
-        public static final double[] DISTANCES = {};
-        public static final double[] VELOCITIES = {};
-        public static final int REGRESSION_DEGREE = 2;
-
-        // Distance sensor
-        public static final double ACTIVATION_DISTANCE = 2; //INCHES
-    }
-
+public class FarRedSideMarksmen extends OpMode {
     // =====================================================================
     // INSTANCE VARIABLES
     // =====================================================================
     private ElapsedTime actiontime = new ElapsedTime();
-    double  shooterTargetVel;
+    double shooterTargetVel;
 
 
     // Hardware
@@ -90,29 +49,51 @@ public class CloseBlueSide extends OpMode {
     private int pathState;
 
     // Start pose of the robot
-    private final Pose startPose = new Pose(25.5, 125.585, Math.toRadians(180));
+    private final Pose startPose = new Pose(88, 8, Math.toRadians(90));
 
     // Generated paths
-    private Path StartToShoot, IntakeCloseLine, ShootCloseLine, PrepIntakeMidLine, IntakeMidLine, ShootMidLine, PrepIntakeFarLine, IntakeFarLine, ShootFarLine, Park;
+    private Path StartToShoot, PrepIntakeLoadingZone, PrepPrepIntakeLoadingZone, IntakeLoadingZone, ShootLoadingZone, Park;
+
+    // =====================================================================
+    // CONSTANTS
+    // =====================================================================
+    public static class TeleOpConstants {
+        // Shooter
+        public static final int SHOOTER_TOLERANCE = 10;
+
+        // Intake
+        public static final double INTAKE_POWER = 1.0;
+
+        // Index
+        public static final int INDEX_STEP = 280;
+        public static final double PASSIVE_INDEX_VELOCITY = 20;
+        public static final double MAG_DUMP_POWER = 0.65;
+
+        // Limelight
+        public static final double LIMELIGHT_MOUNT_ANGLE = 12.0;
+        public static final double LIMELIGHT_HEIGHT = 13.4;
+        public static final double GOAL_HEIGHT = 38.75 - 9.25;
+
+        // Distance sensor
+        public static final double ACTIVATION_DISTANCE = 2; //INCHES
+    }
 
     @Configurable
-    public static class CloseBlueSideConfigurables {
+    public static class FarRedSideMarksmenConfigurables {
         //Adjustable power of dt when intaking and when not intaking (slower for ++accuracy)
         public static double intakePathMaxDrivetrainPower = 0.5;
         public static double defaultPathMaxDrivetrainPower = 0.8;
 
         //x coordinate of shooting pos and end of intake pos (for every line)
-        public static double shootPositionXCoordinate = 49.000;
-        public static double shootPositionYCoordinate = 85.000;
-        public static double intakePathEndXCoordinate = 14.000;
+        public static double shootPositionXCoordinate = 90.000;
+        public static double shootPositionTheta = 62; //Degrees
+        public static double intakePathEndXCoordinate = 135;
 
-        public static double shooterVelocityPreload = 1200;
-        public static double shooterVelocityGoal = 1170;
-        public static double shooterVelocityMid = 1150;
-        public static double shooterVelocityLoadingZone = 1150;
+        public static double shooterVelocityPreload = 1450;
+        public static double shooterVelocitySpikeMarks = 1470;
+        public static double shooterVelocityLoadingZone = 1470;
 
-        public static double magDumpTime = 1.35;
-        public static double autoAlignTime = 0.5;
+        public static double txOffsetDegrees = 3;
     }
 
     /**
@@ -181,40 +162,26 @@ public class CloseBlueSide extends OpMode {
      * Builds all the paths for the autonomous routine.
      */
     public void buildPaths() {
-        StartToShoot = new Path(new BezierLine(startPose, new Pose(shootPositionXCoordinate, shootPositionYCoordinate)));
-        StartToShoot.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135));
+        StartToShoot = new Path(new BezierLine(startPose, new Pose(shootPositionXCoordinate, 10.000)));
+        StartToShoot.setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(shootPositionTheta));
 
-        IntakeCloseLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, shootPositionYCoordinate), new Pose(intakePathEndXCoordinate+2, 85.000)));
-        IntakeCloseLine.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
+        PrepPrepIntakeLoadingZone = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 12.000), new Pose(100, 50)));
+        PrepPrepIntakeLoadingZone.setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(-90));
 
-        ShootCloseLine = new Path(new BezierLine(new Pose(intakePathEndXCoordinate, 85.000), new Pose(shootPositionXCoordinate, shootPositionYCoordinate)));
-        ShootCloseLine.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135));
+        PrepIntakeLoadingZone = new Path(new BezierLine(new Pose(100, 50), new Pose(136, 50)));
+        PrepIntakeLoadingZone.setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(-90));
 
-        PrepIntakeMidLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, shootPositionYCoordinate), new Pose(shootPositionXCoordinate, 60.000)));
-        PrepIntakeMidLine.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
+        IntakeLoadingZone = new Path(new BezierLine(new Pose(136.000, 50), new Pose(136.000, 10.000)));
+        IntakeLoadingZone.setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(-90));
 
-        IntakeMidLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 60.000), new Pose(intakePathEndXCoordinate, 60.000)));
-        IntakeMidLine.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
-
-        ShootMidLine = new Path(new BezierCurve(
-                new Pose(intakePathEndXCoordinate, 60.000),
-                new Pose(48.715, 51.336),
-                new Pose(shootPositionXCoordinate, shootPositionYCoordinate)
+        ShootLoadingZone = new Path(new BezierCurve(
+                new Pose(136.000, 10.000),
+                new Pose(114.628, 40.029),
+                new Pose(shootPositionXCoordinate, 12.000)
         ));
-        ShootMidLine.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135));
+        ShootLoadingZone.setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(shootPositionTheta));
 
-        PrepIntakeFarLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, shootPositionYCoordinate), new Pose(shootPositionXCoordinate, 35.000)));
-        PrepIntakeFarLine.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
-
-
-        IntakeFarLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 35.000), new Pose(intakePathEndXCoordinate, 35.000)));
-        IntakeFarLine.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
-
-        ShootFarLine = new Path(new BezierLine(new Pose(intakePathEndXCoordinate, 35.000), new Pose(shootPositionXCoordinate, shootPositionYCoordinate)));
-        ShootFarLine.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135));
-
-        Park = new Path(new BezierLine(new Pose(shootPositionXCoordinate, shootPositionYCoordinate), new Pose(25, shootPositionYCoordinate)));
-        Park.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
+        Park = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 12.000), new Pose(120, 12.000)));
     }
 
     /**
@@ -226,100 +193,66 @@ public class CloseBlueSide extends OpMode {
         switch (pathState) {
             case 0:
                 // Start to shoot position
-                intakePassiveIndex();
                 follower.followPath(StartToShoot);
                 setShooterVel(shooterVelocityPreload);
                 setPathState(1);
                 break;
             case 1:
-                // Wait until robot reaches shoot position, then start intake close line
+                // Wait until robot reaches shoot position, then prep for far line intake
                 if (!follower.isBusy()) {
-                    autoAlignTimeout(autoAlignTime);
-                    sleep(750);
-                    magDump(0.6, 1.5);
-                    follower.setMaxPower(intakePathMaxDrivetrainPower);
-                    intakePassiveIndex();
-                    follower.followPath(IntakeCloseLine, true);
+                    autoAlignTimeout(0.5);
+                    fieldCentric(0, 0, 0, 0);
+                    sleep(3000);
+                    magDump(1.5);
+                    follower.followPath(PrepPrepIntakeLoadingZone, true);
                     setPathState(2);
                 }
                 break;
             case 2:
-                // Wait until robot reaches intake close line position, then shoot
+                // Wait until robot reaches prep position, then start far line intake
                 if (!follower.isBusy()) {
-                    intake.setPower(1.0);
-                    follower.setMaxPower(defaultPathMaxDrivetrainPower);
-                    setShooterVel(shooterVelocityGoal);
-                    sleep(200);
-                    follower.followPath(ShootCloseLine, true);
+                    intakePassiveIndex();
+//                    follower.setMaxPower(intakePathMaxDrivetrainPower);
+                    follower.setMaxPower(intakePathMaxDrivetrainPower);
+                    follower.followPath(PrepIntakeLoadingZone, true);
                     setPathState(3);
                 }
                 break;
             case 3:
-                // Wait until robot reaches shoot position, then prep for mid line intake
+                // Wait until robot reaches intake far line position, then shoot
                 if (!follower.isBusy()) {
-                    autoAlignTimeout(autoAlignTime);
-                    magDump(magDumpTime);
-                    follower.followPath(PrepIntakeMidLine, true);
+                    sleep(200);
+                    intake.setPower(1.0);
+                    follower.setMaxPower(intakePathMaxDrivetrainPower);
+                    follower.followPath(IntakeLoadingZone, true);
                     setPathState(4);
                 }
                 break;
             case 4:
                 // Wait until robot reaches prep position, then start mid line intake
                 if (!follower.isBusy()) {
-                    intakePassiveIndex();
-                    follower.setMaxPower(intakePathMaxDrivetrainPower);
-                    follower.followPath(IntakeMidLine, true);
+                    setShooterVel(shooterVelocitySpikeMarks);
+                    follower.followPath(ShootLoadingZone, true);
                     setPathState(5);
                 }
                 break;
             case 5:
                 // Wait until robot reaches intake mid line position, then shoot
                 if (!follower.isBusy()) {
-                    intake.setPower(1.0);
-                    follower.setMaxPower(defaultPathMaxDrivetrainPower);
-                    setShooterVel(shooterVelocityMid);
-                    sleep(200);
-                    follower.followPath(ShootMidLine, true);
-                    setPathState(6);
+                    autoAlignTimeout(0.5);
+                    fieldCentric(0, 0, 0, 0);
+                    magDump(1.5);
+                    follower.followPath(PrepPrepIntakeLoadingZone, true);
+                    setPathState(5);
                 }
                 break;
             case 6:
-                // Wait until robot reaches shoot position, then prep for far line intake
                 if (!follower.isBusy()) {
-                    autoAlignTimeout(autoAlignTime);
-                    magDump(magDumpTime);
-                    follower.followPath(PrepIntakeFarLine, true);
-                    setPathState(7);
-                }
-                break;
-            case 7:
-                // Wait until robot reaches prep position, then start far line intake
-                if (!follower.isBusy()) {
-                    intakePassiveIndex();
-                    follower.setMaxPower(intakePathMaxDrivetrainPower);
-                    follower.followPath(IntakeFarLine, true);
-                    setPathState(8);
-                }
-                break;
-            case 8:
-                // Wait until robot reaches intake far line position, then shoot
-                if (!follower.isBusy()) {
-                    intake.setPower(1.0);
-                    follower.setMaxPower(defaultPathMaxDrivetrainPower);
-                    setShooterVel(shooterVelocityLoadingZone);
-                    sleep(200);
-                    follower.followPath(ShootFarLine, true);
-                    setPathState(9);
-                }
-                break;
-            case 9:
-                // Wait until robot reaches shoot position, then end
-                if (!follower.isBusy()) {
-                    // Set the state to a case we won't use, so it just stops running new paths
-                    autoAlignTimeout(autoAlignTime);
-                    magDump(magDumpTime);
+                    autoAlignTimeout(0.5);
+                    fieldCentric(0, 0, 0, 0);
+                    magDump(1.5);
                     follower.followPath(Park, true);
-                    setPathState(10);
+                    setPathState(-1);
                 }
                 break;
         }
@@ -369,22 +302,17 @@ public class CloseBlueSide extends OpMode {
 
     public void intakePassiveIndex() {
         intake.setPower(TeleOpConstants.INTAKE_POWER);
-        index.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        index.setVelocity(TeleOpConstants.PASSIVE_INDEX_VELOCITY);
-    }
-
-    public void magDump(double magDumpPower, double seconds) {
-        actiontime.reset();
-        while (actiontime.seconds()<seconds) {
-            index.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            index.setPower(magDumpPower);
-            intake.setPower(magDumpPower);
+        if (!withinDistance()) {
+            index.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            index.setVelocity(TeleOpConstants.PASSIVE_INDEX_VELOCITY);
+        } else {
+            index.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         }
     }
 
     public void magDump(double seconds) {
         actiontime.reset();
-        while (actiontime.seconds()<seconds) {
+        while (actiontime.seconds() < seconds) {
             index.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             index.setPower(TeleOpConstants.MAG_DUMP_POWER);
             intake.setPower(TeleOpConstants.MAG_DUMP_POWER);
@@ -393,7 +321,7 @@ public class CloseBlueSide extends OpMode {
 
     public void autoAlignTimeout(double seconds) {
         actiontime.reset();
-        while (actiontime.seconds()<seconds) {
+        while (actiontime.seconds() < seconds) {
             autoAlign(0.25);
         }
     }
@@ -460,7 +388,7 @@ public class CloseBlueSide extends OpMode {
             return "RESULT INVALID";
         }
 
-        double tx = result.getTx() - (getDistanceToTag() > 40 ? Teleop_Basebot.Constants.TX_OFFSET_DEGREES_CLOSE : Teleop_Basebot.Constants.TX_OFFSET_DEGREES_FAR);
+        double tx = result.getTx() - txOffsetDegrees;
         if (Math.abs(tx) <= tolerance) {
             frontLeft.setPower(0);
             frontRight.setPower(0);

@@ -42,7 +42,7 @@ public class Teleop_Basebot extends LinearOpMode {
         public static final double PIVOT_MULTIPLIER = 0.8;
         public static final double STRAFE_CORRECTION = 1.1;
         public static final double AUTO_ALIGN_TOLERANCE = 0.25;
-        public static final double ALIGN_P_GAIN = 0.025;
+        public static final double ALIGN_P_GAIN = 0.03;
 
         // Intake
         public static final double INTAKE_POWER = 1.0;
@@ -70,8 +70,8 @@ public class Teleop_Basebot extends LinearOpMode {
         public static final double PINPOINT_Y_OFFSET = 0.0;
 
         // AutoShoot lookup table data (distance in inches -> shooter velocity)
-        public static final double[] DISTANCES = {27, 29.25, 30.2, 31, 32, 34, 35, 46, 47, 48, Double.POSITIVE_INFINITY};
-        public static final double[] VELOCITIES = {1050, 1150, 1150, 1150, 1150, 1200, 1200, 1400, 1400, 1400, 1050};
+        public static final double[] DISTANCES = {27, 29.25, 30.2, 31, 32, 34, 35, 46, 47, 48, 9999};
+        public static final double[] VELOCITIES = {1055, 1150, 1150, 1125, 1150, 1200, 1200, 1400, 1400, 1400, 1045};
 
         // Distance sensor
         public static final double ACTIVATION_DISTANCE = 3.3; //INCHES
@@ -393,7 +393,7 @@ public class Teleop_Basebot extends LinearOpMode {
             double angle = Math.toRadians(Constants.LIMELIGHT_MOUNT_ANGLE + ty);
             return (Constants.GOAL_HEIGHT - Constants.LIMELIGHT_HEIGHT) / Math.tan(angle);
         }
-        return Double.POSITIVE_INFINITY;
+        return 9999;
     }
 
     public boolean isLatestResultValid() {

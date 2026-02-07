@@ -89,9 +89,9 @@ public class FarRedSide extends OpMode {
         public static double shootPositionTheta = 62; //Degrees
         public static double intakePathEndXCoordinate = 135;
 
-        public static double shooterVelocityPreload = 1400;
-        public static double shooterVelocitySpikeMarks = 1430;
-        public static double shooterVelocityLoadingZone = 1430;
+        public static double shooterVelocityPreload = 1450;
+        public static double shooterVelocitySpikeMarks = 1470;
+        public static double shooterVelocityLoadingZone = 1470;
 
         public static double txOffsetDegrees = 3;
     }
@@ -212,7 +212,7 @@ public class FarRedSide extends OpMode {
                 if (!follower.isBusy()) {
                     autoAlignTimeout(0.5);
                     fieldCentric(0, 0, 0, 0);
-                    sleep(1000);
+                    sleep(3000);
                     magDump(1.5);
                     follower.followPath(PrepIntakeFarLine, true);
                     setPathState(2);
