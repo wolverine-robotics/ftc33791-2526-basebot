@@ -275,6 +275,8 @@ public class FarBlueSide extends OpMode {
                     autoAlignTimeout(0.5);
                     fieldCentric(0, 0, 0, 0);
                     magDump(1.5);
+                    intake.setPower(0);
+                    index.setPower(0);
                     follower.followPath(Park, true);
                     setPathState(-1);
                 }
