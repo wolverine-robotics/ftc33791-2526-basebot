@@ -236,10 +236,10 @@ public class Teleop_Basebot extends LinearOpMode {
             if (shooterTargetVel > 500 &&
                     (lShooter.getVelocity() < 50 || rShooter.getVelocity() < 50)) {
                 setPattern(RevBlinkinLedDriver.BlinkinPattern.VIOLET);
-            } else if (!shooterWithinTolerance(shooterTargetVel)) {
-                setPattern(RevBlinkinLedDriver.BlinkinPattern.ORANGE);
             } else if ((gamepad.triangle || gamepad.cross) && !isLatestResultValid()) {
                 setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
+            } else if (!shooterWithinTolerance(shooterTargetVel)) {
+                setPattern(RevBlinkinLedDriver.BlinkinPattern.ORANGE);
             } else if (shooterWithinTolerance(shooterTargetVel)) {
                 setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
             }

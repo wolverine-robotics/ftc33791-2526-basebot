@@ -22,6 +22,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import static org.firstinspires.ftc.teamcode.pedroPathing.CloseBlueSide.CloseBlueSideConfigurables.*;
+
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Teleop_Basebot;
 
@@ -106,10 +107,10 @@ public class CloseBlueSide extends OpMode {
         public static double shootPositionYCoordinate = 85.000;
         public static double intakePathEndXCoordinate = 14.000;
 
-        public static double shooterVelocityPreload = 1200;
-        public static double shooterVelocityGoal = 1170;
-        public static double shooterVelocityMid = 1150;
-        public static double shooterVelocityLoadingZone = 1150;
+        public static double shooterVelocityPreload = 1200-25;
+        public static double shooterVelocityGoal = 1170-15;
+        public static double shooterVelocityMid = 1150-30;
+        public static double shooterVelocityLoadingZone = 1150-15;
 
         public static double magDumpTime = 1.35;
         public static double autoAlignTime = 0.5;

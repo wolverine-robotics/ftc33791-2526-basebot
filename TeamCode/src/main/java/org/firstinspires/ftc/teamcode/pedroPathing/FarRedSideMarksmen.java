@@ -165,20 +165,16 @@ public class FarRedSideMarksmen extends OpMode {
         StartToShoot = new Path(new BezierLine(startPose, new Pose(shootPositionXCoordinate, 10.000)));
         StartToShoot.setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(shootPositionTheta));
 
-        PrepPrepIntakeLoadingZone = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 12.000), new Pose(100, 50)));
-        PrepPrepIntakeLoadingZone.setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(-90));
+        PrepPrepIntakeLoadingZone = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 12.000), new Pose(100, 47.5)));
+        PrepPrepIntakeLoadingZone.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
 
-        PrepIntakeLoadingZone = new Path(new BezierLine(new Pose(100, 50), new Pose(136, 50)));
-        PrepIntakeLoadingZone.setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(-90));
+        PrepIntakeLoadingZone = new Path(new BezierLine(new Pose(100, 47.5), new Pose(136, 47.5)));
+        PrepIntakeLoadingZone.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
 
-        IntakeLoadingZone = new Path(new BezierLine(new Pose(136.000, 50), new Pose(136.000, 10.000)));
+        IntakeLoadingZone = new Path(new BezierLine(new Pose(136.000, 47.5), new Pose(136.000, 10.000)));
         IntakeLoadingZone.setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(-90));
 
-        ShootLoadingZone = new Path(new BezierCurve(
-                new Pose(136.000, 10.000),
-                new Pose(114.628, 40.029),
-                new Pose(shootPositionXCoordinate, 12.000)
-        ));
+        ShootLoadingZone = new Path(new BezierLine(new Pose(136.000, 10.000), new Pose(shootPositionXCoordinate, 12.000)));
         ShootLoadingZone.setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(shootPositionTheta));
 
         Park = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 12.000), new Pose(120, 12.000)));
