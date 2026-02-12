@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import static android.os.SystemClock.sleep;
-import static org.firstinspires.ftc.teamcode.pedroPathing.FarBlueSide.FarBlueSideConfigurables.*;
+import static org.firstinspires.ftc.teamcode.pedroPathing.FarRedSidev2.FarRedSidev2Configurables.*;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
@@ -26,7 +26,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Teleop_Basebot;
 
 @Autonomous()
-public class FarBlueSide extends OpMode {
+public class FarRedSidev2 extends OpMode {
     // =====================================================================
     // INSTANCE VARIABLES
     // =====================================================================
@@ -49,7 +49,7 @@ public class FarBlueSide extends OpMode {
     private int pathState;
 
     // Start pose of the robot
-    private final Pose startPose = new Pose(56, 8, Math.toRadians(90));
+    private final Pose startPose = new Pose(88, 8, Math.toRadians(90));
 
     // Generated paths
     private Path StartToShoot, PrepIntakeFarLine, IntakeFarLine, ShootFarLine, PrepIntakeLoadingZone, IntakeLoadingZone, ShootLoadingZone, Park;
@@ -60,6 +60,16 @@ public class FarBlueSide extends OpMode {
     public static class TeleOpConstants {
         // Shooter
         public static final int SHOOTER_TOLERANCE = 10;
+
+        // Take-back-half (TBH) shooter controller — use setShooterVelTakeBackHalf(vel) to enable.
+        /** Take-back-half shooter controller: power applied when below target (ticks/s). */
+        public static final double TBH_FULL_POWER = 1.0;
+        /** Take-back-half: factor by which power is multiplied when at/above target (e.g. 0.5 = "take back half"). */
+        public static final double TBH_HALF_FACTOR = 0.5;
+        /** Take-back-half: velocity band (ticks/s) to avoid chattering; within target ± this use "at target" logic. */
+        public static final double TBH_TOLERANCE = 30.0;
+        /** Take-back-half: minimum power when above target, so flywheel doesn't stall. */
+        public static final double TBH_MIN_POWER = 0.2;
 
         // Intake
         public static final double INTAKE_POWER = 1.0;
@@ -79,22 +89,28 @@ public class FarBlueSide extends OpMode {
     }
 
     @Configurable
-    public static class FarBlueSideConfigurables {
+    public static class FarRedSidev2Configurables {
         //Adjustable power of dt when intaking and when not intaking (slower for ++accuracy)
         public static double intakePathMaxDrivetrainPower = 0.5;
         public static double defaultPathMaxDrivetrainPower = 0.8;
 
         //x coordinate of shooting pos and end of intake pos (for every line)
-        public static double shootPositionXCoordinate = 54;
-        public static double shootPositionTheta = 118; //Degrees
-        public static double intakePathEndXCoordinate = 9;
+        public static double shootPositionXCoordinate = 90.000;
+        public static double shootPositionTheta = 62; //Degrees
+        public static double intakePathEndXCoordinate = 135;
 
-        public static double shooterVelocityPreload = 1400;
-        public static double shooterVelocitySpikeMarks = 1430;
-        public static double shooterVelocityLoadingZone = 1430;
+        public static double shooterVelocityPreload = 1450;
+        public static double shooterVelocitySpikeMarks = 1470;
+        public static double shooterVelocityLoadingZone = 1470;
 
-        public static double txOffsetDegrees = -3;
+        public static double txOffsetDegrees = 3;
+        public static double magDumpTime = 1.5;
+        public static double autoAlignTime = 0.5;
     }
+
+    /** Last power output from take-back-half controller (per side). Used to "take back half" when at/above target. */
+    double shooterTbhPowerL = 0;
+    double shooterTbhPowerR = 0;
 
     /**
      * This method is called once at the init of the OpMode.
@@ -135,16 +151,12 @@ public class FarBlueSide extends OpMode {
 
         // --- BLINKIN ---
         if (shooterTargetVel > 500 &&
-                (lShooter.getVelocity() < 50 || rShooter.getVelocity() < 50)) {
+            (lShooter.getVelocity() < 50 || rShooter.getVelocity() < 50)) {
             setPattern(RevBlinkinLedDriver.BlinkinPattern.VIOLET);
         } else if (!shooterWithinTolerance(shooterTargetVel)) {
             setPattern(RevBlinkinLedDriver.BlinkinPattern.ORANGE);
-        } else if (shooterWithinTolerance(Teleop_Basebot.Constants.CLOSE_ZONE_VELOCITY)) {
-            setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
-        } else if (shooterWithinTolerance(Teleop_Basebot.Constants.FAR_ZONE_VELOCITY)) {
+        } else if (shooterWithinTolerance(shooterTargetVel)) {
             setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
-        } else if (withinDistance()) {
-            setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
         }
 
         // Feedback to Driver Hub for debugging
@@ -165,34 +177,33 @@ public class FarBlueSide extends OpMode {
         StartToShoot = new Path(new BezierLine(startPose, new Pose(shootPositionXCoordinate, 10.000)));
         StartToShoot.setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(shootPositionTheta));
 
-        PrepIntakeFarLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 12.000), new Pose(44, 35.000)));
-        PrepIntakeFarLine.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
+        PrepIntakeFarLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 12.000), new Pose(100, 35.000)));
+        PrepIntakeFarLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
 
-        IntakeFarLine = new Path(new BezierLine(new Pose(44, 35.000), new Pose(intakePathEndXCoordinate, 35.000)));
-        IntakeFarLine.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
+        IntakeFarLine = new Path(new BezierLine(new Pose(100, 35.000), new Pose(intakePathEndXCoordinate, 35.000)));
+        IntakeFarLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
 
         ShootFarLine = new Path(new BezierLine(new Pose(intakePathEndXCoordinate, 35.000), new Pose(shootPositionXCoordinate, 12.000)));
-        ShootFarLine.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(shootPositionTheta));
+        ShootFarLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(shootPositionTheta));
 
         PrepIntakeLoadingZone = new Path(new BezierCurve(
                 new Pose(shootPositionXCoordinate, 12.000),
-                new Pose(35.09, 58.744),
-                new Pose(8, 28.000)
+                new Pose(108.910, 58.744),
+                new Pose(136.000, 28.000)
         ));
         PrepIntakeLoadingZone.setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(-90));
 
-        IntakeLoadingZone = new Path(new BezierLine(new Pose(8, 28.000), new Pose(8, 10)));
+        IntakeLoadingZone = new Path(new BezierLine(new Pose(136.000, 28.000), new Pose(136.000, 10.000)));
         IntakeLoadingZone.setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(-90));
 
         ShootLoadingZone = new Path(new BezierCurve(
-                new Pose(8, 10),
-                new Pose(29.372, 40.029),
+                new Pose(136.000, 9.000),
+                new Pose(114.628, 40.029),
                 new Pose(shootPositionXCoordinate, 12.000)
         ));
         ShootLoadingZone.setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(shootPositionTheta));
 
-        Park = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 12.000), new Pose(24, 12.000)));
-        Park.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
+        Park = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 12.000), new Pose(120, 12.000)));
     }
 
     /**
@@ -205,16 +216,16 @@ public class FarBlueSide extends OpMode {
             case 0:
                 // Start to shoot position
                 follower.followPath(StartToShoot);
-                setShooterVel(shooterVelocityPreload);
+                setShooterVelTakeBackHalf(shooterVelocityPreload);
                 setPathState(1);
                 break;
             case 1:
                 // Wait until robot reaches shoot position, then prep for far line intake
                 if (!follower.isBusy()) {
-                    autoAlignTimeout(0.5);
+                    autoAlignTimeout(autoAlignTime);
                     fieldCentric(0, 0, 0, 0);
-                    sleep(1000);
-                    magDump(1.5);
+                    sleep(3000);
+                    magDump(magDumpTime);
                     follower.followPath(PrepIntakeFarLine, true);
                     setPathState(2);
                 }
@@ -234,7 +245,7 @@ public class FarBlueSide extends OpMode {
                     sleep(200);
                     intake.setPower(1.0);
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
-                    setShooterVel(shooterVelocitySpikeMarks);
+                    setShooterVelTakeBackHalf(shooterVelocitySpikeMarks);
                     follower.followPath(ShootFarLine, true);
                     setPathState(4);
                 }
@@ -242,9 +253,9 @@ public class FarBlueSide extends OpMode {
             case 4:
                 // Wait until robot reaches prep position, then start mid line intake
                 if (!follower.isBusy()) {
-                    autoAlignTimeout(0.5);
+                    autoAlignTimeout(autoAlignTime);
                     fieldCentric(0, 0, 0, 0);
-                    magDump(1.5);
+                    magDump(magDumpTime);
                     follower.followPath(PrepIntakeLoadingZone, true);
                     setPathState(5);
                 }
@@ -264,7 +275,7 @@ public class FarBlueSide extends OpMode {
                     sleep(250);
                     intake.setPower(1.5);
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
-                    setShooterVel(shooterVelocityLoadingZone);
+                    setShooterVelTakeBackHalf(shooterVelocityLoadingZone);
                     follower.followPath(ShootLoadingZone, true);
                     setPathState(7);
                 }
@@ -272,9 +283,9 @@ public class FarBlueSide extends OpMode {
             case 7:
                 // Wait until robot reaches prep position, then start far line intake
                 if (!follower.isBusy()) {
-                    autoAlignTimeout(0.5);
+                    autoAlignTimeout(autoAlignTime);
                     fieldCentric(0, 0, 0, 0);
-                    magDump(1.5);
+                    magDump(magDumpTime);
                     intake.setPower(0);
                     index.setPower(0);
                     follower.followPath(Park, true);
@@ -295,6 +306,36 @@ public class FarBlueSide extends OpMode {
     // =====================================================================
     // SHOOTER METHODS
     // =====================================================================
+    public double shooterTakeBackHalf(double targetVel, double currentVel, double lastPower) {
+        if (targetVel <= 0) return 0;
+
+        boolean atOrAboveTarget = currentVel >= targetVel - TeleOpConstants.TBH_TOLERANCE;
+
+        if (atOrAboveTarget) {
+            double half = lastPower * TeleOpConstants.TBH_HALF_FACTOR;
+            return Math.max(TeleOpConstants.TBH_MIN_POWER, Math.min(1.0, half));
+        } else {
+            return Math.min(1.0, TeleOpConstants.TBH_FULL_POWER);
+        }
+    }
+
+    public void setShooterVelTakeBackHalf(double vel) {
+        shooterTargetVel = vel;
+        if (vel <= 0) {
+            shooterTbhPowerL = 0;
+            shooterTbhPowerR = 0;
+            lShooter.setPower(0);
+            rShooter.setPower(0);
+            return;
+        }
+        double velL = lShooter.getVelocity();
+        double velR = rShooter.getVelocity();
+        shooterTbhPowerL = shooterTakeBackHalf(vel, velL, shooterTbhPowerL);
+        shooterTbhPowerR = shooterTakeBackHalf(vel, velR, shooterTbhPowerR);
+        lShooter.setPower(shooterTbhPowerL);
+        rShooter.setPower(shooterTbhPowerR);
+    }
+
     public void setShooterVel(double vel) {
         shooterTargetVel = vel;
         lShooter.setVelocity(vel);
@@ -328,11 +369,16 @@ public class FarBlueSide extends OpMode {
 
     public void intakePassiveIndex() {
         intake.setPower(TeleOpConstants.INTAKE_POWER);
-        if (!withinDistance()) {
-            index.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            index.setVelocity(TeleOpConstants.PASSIVE_INDEX_VELOCITY);
-        } else {
-            index.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        index.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        index.setVelocity(TeleOpConstants.PASSIVE_INDEX_VELOCITY);
+    }
+
+    public void magDump(double magDumpPower, double seconds) {
+        actiontime.reset();
+        while (actiontime.seconds() < seconds) {
+            index.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            index.setPower(magDumpPower);
+            intake.setPower(magDumpPower);
         }
     }
 
@@ -345,9 +391,12 @@ public class FarBlueSide extends OpMode {
         }
     }
 
+    boolean withinTolerance = false;
+
     public void autoAlignTimeout(double seconds) {
         actiontime.reset();
-        while (actiontime.seconds() < seconds) {
+        withinTolerance = false;
+        while (actiontime.seconds() < seconds || !withinTolerance) {
             autoAlign(0.25);
         }
     }
@@ -420,6 +469,7 @@ public class FarBlueSide extends OpMode {
             frontRight.setPower(0);
             backLeft.setPower(0);
             backRight.setPower(0);
+            withinTolerance = true;
             return "SUCCESS";
         }
 

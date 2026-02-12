@@ -94,7 +94,7 @@ public class Teleop_Basebot extends LinearOpMode {
     DcMotorEx intake, index;
     GoBildaPinpointDriver pinpoint;
     Limelight3A limelight;
-//    DistanceSensor distance;
+    //    DistanceSensor distance;
     RevBlinkinLedDriver blinkinLedDriver;
     RevBlinkinLedDriver.BlinkinPattern pattern;
 
@@ -208,8 +208,8 @@ public class Teleop_Basebot extends LinearOpMode {
             // --- INDEX ---
             if (gamepad.right_trigger > Constants.TRIGGER_THRESHOLD) {
                 intake.setPower(Constants.INTAKE_POWER);
-                    index.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                    index.setVelocity(Constants.PASSIVE_INDEX_VELOCITY);
+                index.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                index.setVelocity(Constants.PASSIVE_INDEX_VELOCITY);
             } else if (gamepad.left_trigger > Constants.TRIGGER_THRESHOLD) {
                 intake.setPower(Constants.INTAKE_REVERSE_POWER);
             } else if (gamepad.dpadRightWasPressed()) {

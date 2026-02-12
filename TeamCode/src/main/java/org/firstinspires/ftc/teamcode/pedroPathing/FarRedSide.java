@@ -66,7 +66,7 @@ public class FarRedSide extends OpMode {
 
         // Index
         public static final int INDEX_STEP = 280;
-        public static final double PASSIVE_INDEX_VELOCITY = 20;
+        public static final double PASSIVE_INDEX_VELOCITY = 0;
         public static final double MAG_DUMP_POWER = 0.65;
 
         // Limelight
