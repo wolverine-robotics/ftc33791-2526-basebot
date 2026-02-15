@@ -106,7 +106,7 @@ public class CloseRedSidev2 extends OpMode {
     private final Pose startPose = new Pose(118.5, 126.585, Math.toRadians(0));
 
     // Generated paths
-    private Path GateBoop, StartToShoot, IntakeCloseLine, ShootCloseLine, PrepIntakeMidLine, IntakeMidLine, ShootMidLine, PrepIntakeFarLine, IntakeFarLine, ShootFarLine, Park;
+    private Path GateBoop, GateBoop2, StartToShoot, IntakeCloseLine, ShootCloseLine, PrepIntakeMidLine, IntakeMidLine, ShootMidLine, PrepIntakeFarLine, IntakeFarLine, ShootFarLine, Park;
 
     @Configurable
     public static class CloseRedSide15Configurables {
@@ -203,11 +203,11 @@ public class CloseRedSidev2 extends OpMode {
         GateBoop = new Path(new BezierCurve(
                 new Pose(132.000, 85.000),
                 new Pose(106.540, 77.189),
-                new Pose(133.000, 70.000)
+                new Pose(132.000, 70.000)
         ));
         GateBoop.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
 
-        ShootCloseLine = new Path(new BezierLine(new Pose(133.000, 70.000), new Pose(shootPositionXCoordinate, shootPositionYCoordinate)));
+        ShootCloseLine = new Path(new BezierLine(new Pose(132.000, 70.000), new Pose(shootPositionXCoordinate, shootPositionYCoordinate)));
         ShootCloseLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45));
 
         PrepIntakeMidLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, shootPositionYCoordinate), new Pose(shootPositionXCoordinate, 60.000)));
@@ -216,9 +216,16 @@ public class CloseRedSidev2 extends OpMode {
         IntakeMidLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 60.000), new Pose(intakePathEndXCoordinate, 60.000)));
         IntakeMidLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
 
-        ShootMidLine = new Path(new BezierCurve(
+        GateBoop2 = new Path(new BezierCurve(
                 new Pose(intakePathEndXCoordinate, 60.000),
-                new Pose(95.285, 51.366),
+                new Pose(106.540, 77.189),
+                new Pose(132.000, 70.000)
+        ));
+        GateBoop2.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
+
+        ShootMidLine = new Path(new BezierLine(
+                new Pose(intakePathEndXCoordinate, 60.000),
+//                new Pose(95.285, 51.366),
                 new Pose(shootPositionXCoordinate, shootPositionYCoordinate)
         ));
         ShootMidLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45));
@@ -247,7 +254,7 @@ public class CloseRedSidev2 extends OpMode {
                 // Start to shoot position
                 intakePassiveIndex();
                 follower.followPath(StartToShoot);
-                setShooterVelTakeBackHalf(shooterVelocityPreload);
+                setShooterVel(shooterVelocityPreload);
                 setPathState(1);
                 break;
             case 1:
@@ -267,7 +274,7 @@ public class CloseRedSidev2 extends OpMode {
                 if (!follower.isBusy()) {
                     intake.setPower(1.0);
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
-                    setShooterVelTakeBackHalf(shooterVelocityGoal);
+                    setShooterVel(shooterVelocityGoal);
                     sleep(200);
                     follower.followPath(GateBoop, true);
                     setPathState(21);
@@ -305,12 +312,21 @@ public class CloseRedSidev2 extends OpMode {
                 if (!follower.isBusy()) {
                     intake.setPower(1.0);
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
-                    setShooterVelTakeBackHalf(shooterVelocityMid);
+                    setShooterVel(shooterVelocityMid);
                     sleep(200);
                     follower.followPath(ShootMidLine, true);
-                    setPathState(6);
+                    setPathState(9); //Park immediately
                 }
                 break;
+            case 51:
+                // Wait until robot reaches intake close line position, then shoot
+                if (!follower.isBusy()) {
+//                    intake.setPower(1.0);
+//                    setShooterVelTakeBackHalf(shooterVelocityGoal);
+                    sleep(200);
+                    follower.followPath(ShootMidLine, true);
+                    setPathState(9);
+                }
             case 6:
                 // Wait until robot reaches shoot position, then prep for far line intake
                 if (!follower.isBusy()) {
@@ -334,7 +350,7 @@ public class CloseRedSidev2 extends OpMode {
                 if (!follower.isBusy()) {
                     intake.setPower(1.0);
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
-                    setShooterVelTakeBackHalf(shooterVelocityLoadingZone);
+                    setShooterVel(shooterVelocityLoadingZone);
                     sleep(200);
                     follower.followPath(ShootFarLine, true);
                     setPathState(9);
@@ -454,7 +470,7 @@ public class CloseRedSidev2 extends OpMode {
     public void autoAlignTimeout(double seconds) {
         actiontime.reset();
         withinTolerance = false;
-        while (actiontime.seconds()<seconds || !withinTolerance) {
+        while (actiontime.seconds()<seconds) {
             autoAlign(0.25);
         }
     }

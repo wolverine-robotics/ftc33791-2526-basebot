@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import static android.os.SystemClock.sleep;
 import static org.firstinspires.ftc.teamcode.pedroPathing.CloseBlueSidev2.CloseRedSide15Configurables.*;
-
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
@@ -105,7 +104,7 @@ public class CloseBlueSidev2 extends OpMode {
     private final Pose startPose = new Pose(25.5, 125.585, Math.toRadians(180));
 
     // Generated paths
-    private Path GateBoop, StartToShoot, IntakeCloseLine, ShootCloseLine, PrepIntakeMidLine, IntakeMidLine, ShootMidLine, PrepIntakeFarLine, IntakeFarLine, ShootFarLine, Park;
+    private Path GateBoop, GateBoop2, StartToShoot, IntakeCloseLine, ShootCloseLine, PrepIntakeMidLine, IntakeMidLine, ShootMidLine, PrepIntakeFarLine, IntakeFarLine, ShootFarLine, Park;
 
     @Configurable
     public static class CloseRedSide15Configurables {
@@ -114,14 +113,14 @@ public class CloseBlueSidev2 extends OpMode {
         public static double defaultPathMaxDrivetrainPower = 0.8;
 
         //x coordinate of shooting pos and end of intake pos (for every line)
-        public static double shootPositionXCoordinate = 95.000;
+        public static double shootPositionXCoordinate = 49.000;
         public static double shootPositionYCoordinate = 85.000;
-        public static double intakePathEndXCoordinate = 130.000;
+        public static double intakePathEndXCoordinate = 14.000;
 
-        public static double shooterVelocityPreload = 1200;
-        public static double shooterVelocityGoal = 1170;
-        public static double shooterVelocityMid = 1150;
-        public static double shooterVelocityLoadingZone = 1150;
+        public static double shooterVelocityPreload = 1200-25;
+        public static double shooterVelocityGoal = 1170-15;
+        public static double shooterVelocityMid = 1150-30;
+        public static double shooterVelocityLoadingZone = 1150-15;
 
         public static double magDumpTime = 1.35;
         public static double autoAlignTime = 0.5;
@@ -201,10 +200,10 @@ public class CloseBlueSidev2 extends OpMode {
 
         GateBoop = new Path(new BezierCurve(
                 new Pose(intakePathEndXCoordinate+2, 85.000),
-                new Pose(intakePathEndXCoordinate+10, 77.189),
+                new Pose(intakePathEndXCoordinate+26, 77.189),
                 new Pose(intakePathEndXCoordinate+2, 70.000)
         ));
-        GateBoop.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
+        GateBoop.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
 
         ShootCloseLine = new Path(new BezierLine(new Pose(intakePathEndXCoordinate+2, 70.000), new Pose(shootPositionXCoordinate, shootPositionYCoordinate)));
         ShootCloseLine.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135));
@@ -215,9 +214,16 @@ public class CloseBlueSidev2 extends OpMode {
         IntakeMidLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 60.000), new Pose(intakePathEndXCoordinate, 60.000)));
         IntakeMidLine.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
 
-        ShootMidLine = new Path(new BezierCurve(
+        GateBoop2 = new Path(new BezierCurve(
                 new Pose(intakePathEndXCoordinate, 60.000),
-                new Pose(48.715, 51.336),
+                new Pose(intakePathEndXCoordinate+26, 77.189),
+                new Pose(intakePathEndXCoordinate+2, 70.000)
+        ));
+        GateBoop2.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
+
+        ShootMidLine = new Path(new BezierLine(
+                new Pose(intakePathEndXCoordinate, 60.000),
+//                new Pose(48.715, 51.336),
                 new Pose(shootPositionXCoordinate, shootPositionYCoordinate)
         ));
         ShootMidLine.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135));
@@ -247,7 +253,7 @@ public class CloseBlueSidev2 extends OpMode {
                 // Start to shoot position
                 intakePassiveIndex();
                 follower.followPath(StartToShoot);
-                setShooterVelTakeBackHalf(shooterVelocityPreload);
+                setShooterVel(shooterVelocityPreload);
                 setPathState(1);
                 break;
             case 1:
@@ -267,7 +273,7 @@ public class CloseBlueSidev2 extends OpMode {
                 if (!follower.isBusy()) {
                     intake.setPower(1.0);
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
-                    setShooterVelTakeBackHalf(shooterVelocityGoal);
+                    setShooterVel(shooterVelocityGoal);
                     sleep(200);
                     follower.followPath(GateBoop, true);
                     setPathState(21);
@@ -305,12 +311,21 @@ public class CloseBlueSidev2 extends OpMode {
                 if (!follower.isBusy()) {
                     intake.setPower(1.0);
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
-                    setShooterVelTakeBackHalf(shooterVelocityMid);
+                    setShooterVel(shooterVelocityMid);
                     sleep(200);
                     follower.followPath(ShootMidLine, true);
-                    setPathState(6);
+                    setPathState(9); //Park immediately
                 }
                 break;
+            case 51:
+                // Wait until robot reaches intake close line position, then shoot
+                if (!follower.isBusy()) {
+//                    intake.setPower(1.0);
+//                    setShooterVelTakeBackHalf(shooterVelocityGoal);
+                    sleep(200);
+                    follower.followPath(ShootMidLine, true);
+                    setPathState(9);
+                }
             case 6:
                 // Wait until robot reaches shoot position, then prep for far line intake
                 if (!follower.isBusy()) {
@@ -334,7 +349,7 @@ public class CloseBlueSidev2 extends OpMode {
                 if (!follower.isBusy()) {
                     intake.setPower(1.0);
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
-                    setShooterVelTakeBackHalf(shooterVelocityLoadingZone);
+                    setShooterVel(shooterVelocityLoadingZone);
                     sleep(200);
                     follower.followPath(ShootFarLine, true);
                     setPathState(9);
@@ -454,7 +469,7 @@ public class CloseBlueSidev2 extends OpMode {
     public void autoAlignTimeout(double seconds) {
         actiontime.reset();
         withinTolerance = false;
-        while (actiontime.seconds()<seconds || !withinTolerance) {
+        while (actiontime.seconds()<seconds) {
             autoAlign(0.25);
         }
     }
