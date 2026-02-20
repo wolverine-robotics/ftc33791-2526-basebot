@@ -92,7 +92,6 @@ public class CloseRedSidev2 extends OpMode {
     DcMotorEx frontLeft, frontRight, backLeft, backRight;
     DcMotorEx lShooter, rShooter;
     DcMotorEx intake, index;
-    GoBildaPinpointDriver pinpoint;
     Limelight3A limelight;
     DistanceSensor distance;
     RevBlinkinLedDriver blinkinLedDriver;
@@ -106,25 +105,25 @@ public class CloseRedSidev2 extends OpMode {
     private final Pose startPose = new Pose(118.5, 126.585, Math.toRadians(0));
 
     // Generated paths
-    private Path GateBoop, GateBoop2, StartToShoot, IntakeCloseLine, ShootCloseLine, PrepIntakeMidLine, IntakeMidLine, ShootMidLine, PrepIntakeFarLine, IntakeFarLine, ShootFarLine, Park;
+    private Path OpenGateAfterCloseLine, OpenGateAfterMidLine, StartToShoot, IntakeCloseLine, ShootCloseLine, PrepIntakeMidLine, IntakeMidLine, ShootMidLine, PrepIntakeFarLine, IntakeFarLine, ShootFarLine, Park;
 
     @Configurable
     public static class CloseRedSide15Configurables {
         //Adjustable power of dt when intaking and when not intaking (slower for ++accuracy)
-        public static double intakePathMaxDrivetrainPower = 0.5;
-        public static double defaultPathMaxDrivetrainPower = 0.8;
+        public static double intakePathMaxDrivetrainPower = 0.6; //0.5
+        public static double defaultPathMaxDrivetrainPower = 1.0; //0.8
 
         //x coordinate of shooting pos and end of intake pos (for every line)
         public static double shootPositionXCoordinate = 95.000;
         public static double shootPositionYCoordinate = 85.000;
-        public static double intakePathEndXCoordinate = 130.000;
+        public static double intakePathEndXCoordinate = 132.000;
 
-        public static double shooterVelocityPreload = 1200;
-        public static double shooterVelocityGoal = 1170;
-        public static double shooterVelocityMid = 1150;
-        public static double shooterVelocityLoadingZone = 1150;
+        public static double shooterVelocityPreload = 1200-25;
+        public static double shooterVelocityGoal = 1170-15;
+        public static double shooterVelocityMid = 1150-30;
+        public static double shooterVelocityLoadingZone = 1150-15;
 
-        public static double magDumpTime = 1.35;
+        public static double magDumpTime = 1.0;
         public static double autoAlignTime = 0.5;
     }
 
@@ -197,18 +196,18 @@ public class CloseRedSidev2 extends OpMode {
         StartToShoot = new Path(new BezierLine(startPose, new Pose(shootPositionXCoordinate, shootPositionYCoordinate)));
         StartToShoot.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45));
 
-        IntakeCloseLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, shootPositionYCoordinate), new Pose(132, 85.000)));
+        IntakeCloseLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, shootPositionYCoordinate), new Pose(intakePathEndXCoordinate-2, 85.000)));
         IntakeCloseLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
 
-        GateBoop = new Path(new BezierCurve(
-                new Pose(132.000, 85.000),
-                new Pose(106.540, 77.189),
-                new Pose(132.000, 70.000)
+        OpenGateAfterCloseLine = new Path(new BezierCurve(
+                new Pose(intakePathEndXCoordinate-2, 85.000),
+                new Pose(intakePathEndXCoordinate-26, 77.189),
+                new Pose(intakePathEndXCoordinate-2, 70.000)
         ));
-        GateBoop.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
+        OpenGateAfterCloseLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
 
-        ShootCloseLine = new Path(new BezierLine(new Pose(132.000, 70.000), new Pose(shootPositionXCoordinate, shootPositionYCoordinate)));
-        ShootCloseLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45));
+        ShootCloseLine = new Path(new BezierLine(follower.getPose(), new Pose(shootPositionXCoordinate, shootPositionYCoordinate)));
+        ShootCloseLine.setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(45));
 
         PrepIntakeMidLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, shootPositionYCoordinate), new Pose(shootPositionXCoordinate, 60.000)));
         PrepIntakeMidLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
@@ -216,16 +215,15 @@ public class CloseRedSidev2 extends OpMode {
         IntakeMidLine = new Path(new BezierLine(new Pose(shootPositionXCoordinate, 60.000), new Pose(intakePathEndXCoordinate, 60.000)));
         IntakeMidLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
 
-        GateBoop2 = new Path(new BezierCurve(
+        OpenGateAfterMidLine = new Path(new BezierCurve(
                 new Pose(intakePathEndXCoordinate, 60.000),
-                new Pose(106.540, 77.189),
-                new Pose(132.000, 70.000)
+                new Pose(intakePathEndXCoordinate-26, 77.189),
+                new Pose(intakePathEndXCoordinate-2, 70.000)
         ));
-        GateBoop2.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
+        OpenGateAfterMidLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0));
 
         ShootMidLine = new Path(new BezierLine(
-                new Pose(intakePathEndXCoordinate, 60.000),
-//                new Pose(95.285, 51.366),
+                follower.getPose(),
                 new Pose(shootPositionXCoordinate, shootPositionYCoordinate)
         ));
         ShootMidLine.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45));
@@ -253,6 +251,7 @@ public class CloseRedSidev2 extends OpMode {
             case 0:
                 // Start to shoot position
                 intakePassiveIndex();
+                incrementIndexPos(500); //Reload
                 follower.followPath(StartToShoot);
                 setShooterVel(shooterVelocityPreload);
                 setPathState(1);
@@ -261,7 +260,7 @@ public class CloseRedSidev2 extends OpMode {
                 // Wait until robot reaches shoot position, then start intake close line
                 if (!follower.isBusy()) {
                     autoAlignTimeout(autoAlignTime);
-                    sleep(750);
+                    while(shooterWithinTolerance(shooterTargetVel));
                     magDump(0.6, 1.5);
                     follower.setMaxPower(intakePathMaxDrivetrainPower);
                     intakePassiveIndex();
@@ -276,7 +275,8 @@ public class CloseRedSidev2 extends OpMode {
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
                     setShooterVel(shooterVelocityGoal);
                     sleep(200);
-                    follower.followPath(GateBoop, true);
+                    incrementIndexPos(500); //Reload
+                    follower.followPath(OpenGateAfterCloseLine, true);
                     setPathState(21);
                 }
                 break;
@@ -314,8 +314,9 @@ public class CloseRedSidev2 extends OpMode {
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
                     setShooterVel(shooterVelocityMid);
                     sleep(200);
+                    incrementIndexPos(500); //Reload
                     follower.followPath(ShootMidLine, true);
-                    setPathState(9); //Park immediately
+                    setPathState(9); // 51 = gate ; 6 = 12-ball ; 9 = park;
                 }
                 break;
             case 51:
@@ -352,6 +353,7 @@ public class CloseRedSidev2 extends OpMode {
                     follower.setMaxPower(defaultPathMaxDrivetrainPower);
                     setShooterVel(shooterVelocityLoadingZone);
                     sleep(200);
+                    incrementIndexPos(500); //Reload
                     follower.followPath(ShootFarLine, true);
                     setPathState(9);
                 }
@@ -435,6 +437,10 @@ public class CloseRedSidev2 extends OpMode {
         index.setTargetPosition(pos);
         index.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         index.setPower(1);
+    }
+
+    public void incrementIndexPos(int increment) {
+        setIndexPos(index.getCurrentPosition()+increment);
     }
 
     public boolean withinDistance() {
