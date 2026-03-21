@@ -35,13 +35,13 @@ public class Teleop_Basebot extends LinearOpMode {
         public static final double SHOOTER_P_GAIN = 1;
         public static final double SHOOTER_I_GAIN = 0.001;
         public static final double SHOOTER_D_GAIN = 0.0;
-        public static final int SHOOTER_TOLERANCE = 50;
+        public static final int SHOOTER_TOLERANCE = 40;
         public static int SHOOTER_PLUS = 50;
 
         // Drive
         public static final double PIVOT_MULTIPLIER = 0.8;
         public static final double STRAFE_CORRECTION = 1.1;
-        public static final double AUTO_ALIGN_TOLERANCE = 0.25;
+        public static final double AUTO_ALIGN_TOLERANCE = 0.2;
         public static final double ALIGN_P_GAIN = 0.03;
 
         // Intake
@@ -52,7 +52,7 @@ public class Teleop_Basebot extends LinearOpMode {
         // Index
         public static final int INDEX_STEP = 280;
         public static final double PASSIVE_INDEX_VELOCITY = 20;
-        public static double MAG_DUMP_POWER = 0.9;
+        public static double MAG_DUMP_POWER = 1;
 
 
         // Limelight
@@ -61,7 +61,7 @@ public class Teleop_Basebot extends LinearOpMode {
         public static final double GOAL_HEIGHT = 38.75 - 9.25;
         //If turns left, positive is more left
         //If turns right, positive is more right (edit these comments to confirm)
-        public static final double TX_OFFSET_DEGREES_CLOSE = 5;
+        public static final double TX_OFFSET_DEGREES_CLOSE = 4;
         public static final double TX_OFFSET_DEGREES_FAR = 0;
 
 
@@ -71,7 +71,7 @@ public class Teleop_Basebot extends LinearOpMode {
 
         // AutoShoot lookup table data (distance in inches -> shooter velocity)
         public static final double[] DISTANCES = {27, 29.25, 30.2, 31, 32, 34, 35, 46, 47, 48, 9999};
-        public static final double[] VELOCITIES = {1055, 1150, 1150, 1125, 1150, 1200, 1200, 1400, 1400, 1400, 1045};
+        public static final double[] VELOCITIES = {1055-17, 1150-15, 1150-17, 1125-20, 1150-20, 1200-20, 1200-20, 1400-20, 1400-20, 1400-20, 1045-20};
 
         // Distance sensor
         public static final double ACTIVATION_DISTANCE = 3.3; //INCHES
