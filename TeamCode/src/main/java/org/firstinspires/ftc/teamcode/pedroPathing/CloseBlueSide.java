@@ -49,7 +49,7 @@ public class CloseBlueSide extends OpMode {
         // Index
         public static final int INDEX_STEP = 280;
         public static final double PASSIVE_INDEX_VELOCITY = 0;
-        public static final double MAG_DUMP_POWER = 0.7;
+        public static final double MAG_DUMP_POWER = 0.9;
 
         // Limelight
         public static final double LIMELIGHT_MOUNT_ANGLE = 12.0;
@@ -108,9 +108,9 @@ public class CloseBlueSide extends OpMode {
         public static double intakePathEndXCoordinate = 14.000;
 
         public static double shooterVelocityPreload = 1200-25;
-        public static double shooterVelocityGoal = 1170-15;
-        public static double shooterVelocityMid = 1150-30;
-        public static double shooterVelocityLoadingZone = 1150-15;
+        public static double shooterVelocityGoal = 1170-15-15;
+        public static double shooterVelocityMid = 1150-30-15-5;
+        public static double shooterVelocityLoadingZone = 1150-15-15-3;
 
         public static double magDumpTime = 1.35;
         public static double autoAlignTime = 0.5;
@@ -236,7 +236,7 @@ public class CloseBlueSide extends OpMode {
                 // Wait until robot reaches shoot position, then start intake close line
                 if (!follower.isBusy()) {
                     autoAlignTimeout(autoAlignTime);
-                    sleep(750);
+                    sleep(750+500);
                     magDump(0.6, 1.5);
                     follower.setMaxPower(intakePathMaxDrivetrainPower);
                     intakePassiveIndex();
