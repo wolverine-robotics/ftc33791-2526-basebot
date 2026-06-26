@@ -1,3 +1,4 @@
+<h6> <i>For more information about our robot, visit <a href="https://www.aakhaled.com/first/decode/">this page</a> published by our main programmer, Abdullah!</i></h6>
 ## NOTICE
 
 This repository contains the public FTC SDK for the DECODE (2025-2026) competition season.
